@@ -147,7 +147,6 @@
     if (!bankName && ifsc !== "--") {
       bankName = getBankNameFromIFSC(ifsc);
     }
-
     const upi = (localStorage.getItem("upi") || "--").toUpperCase();
 
     document.getElementById("name").innerText = name;
@@ -194,6 +193,10 @@
       tbody.appendChild(row);
     }
 
+    function formatINR(val) {
+      return isNaN(val) ? "--" : `₹${parseInt(val).toLocaleString("en-IN")}`;
+    }
+
     async function downloadPDF() {
       navigator.vibrate?.(100);
       const { jsPDF } = window.jspdf;
@@ -209,13 +212,13 @@
         ["Customer Name", name],
         ["Loan ID", loanId],
         ["Transaction ID", txnId],
-        ["Loan Amount", `₹${amount.toLocaleString("en-IN")}`],
-        ["Processing Fee", `₹${processingFee.toLocaleString("en-IN")}`],
-        ["Disbursed Amount", `₹${disbursed.toLocaleString("en-IN")}`],
+        ["Loan Amount", formatINR(amount)],
+        ["Processing Fee", formatINR(processingFee)],
+        ["Disbursed Amount", formatINR(disbursed)],
         ["Tenure", `${tenure} months`],
-        ["EMI", `₹${emi.toLocaleString("en-IN")}/month`],
-        ["Interest Rate", `${rate}%`],
-        ["Total Payable", `₹${total.toLocaleString("en-IN")}`],
+        ["EMI", `${formatINR(emi)}/month`],
+        ["Interest Rate", isNaN(rate) ? "--" : `${rate}%`],
+        ["Total Payable", formatINR(total)],
         ["Loan Apply Date", applyDate],
         ["EMI Start Date", startDate.toLocaleDateString("en-IN")],
         ["EMI End Date", endDate.toLocaleDateString("en-IN")],
@@ -241,12 +244,12 @@
       const emiRows = Array.from(document.querySelectorAll("#emiTable tbody tr")).map(row => {
         const cols = row.querySelectorAll("td");
         return [
-          cols[0].innerText,
-          cols[1].innerText,
-          `₹${cols[2].innerText}`,
-          `₹${cols[3].innerText}`,
-          `₹${cols[4].innerText}`,
-          cols[5].innerText
+          cols[0]?.innerText || "--",
+          cols[1]?.innerText || "--",
+          `₹${cols[2]?.innerText || "0"}`,
+          `₹${cols[3]?.innerText || "0"}`,
+          `₹${cols[4]?.innerText || "0"}`,
+          cols[5]?.innerText || "--"
         ];
       });
 
