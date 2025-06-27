@@ -166,20 +166,19 @@ async function downloadPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  const pageWidth = doc.internal.pageSize.getWidth();
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("DIGITAL FINANCE", pageWidth / 2, 15, { align: "center" });
-  doc.setFontSize(13);
-  doc.text("Loan Summary Report", pageWidth / 2, 25, { align: "center" });
+  doc.setFontSize(18);
+  doc.text("DIGITAL FINANCE", 105, 15, null, null, "center");
+  doc.setFontSize(14);
+  doc.text("Loan Summary Report", 105, 23, null, null, "center");
 
   const info = [
     ["Customer Name", name],
     ["Loan ID", loanId],
     ["Transaction ID", txnId],
-    ["Loan Amount", "₹" + amount.toLocaleString("en-IN")],
-    ["Processing Fee", "₹" + processingFee.toLocaleString("en-IN")],
-    ["Disbursed Amount", "₹" + disbursed.toLocaleString("en-IN")],
+    ["Loan Amount", `₹${amount.toLocaleString("en-IN")}`],
+    ["Processing Fee", `₹${processingFee.toLocaleString("en-IN")}`],
+    ["Disbursed Amount", `₹${disbursed.toLocaleString("en-IN")}`],
     ["Tenure", `${tenure} months`],
     ["EMI", `₹${emi.toLocaleString("en-IN")}/month`],
     ["Interest Rate", `${rate}%`],
@@ -198,11 +197,11 @@ async function downloadPDF() {
     head: [["Detail", "Value"]],
     body: info,
     theme: 'grid',
-    styles: { fontSize: 10, halign: 'center' },
+    styles: { fontSize: 10 },
     headStyles: { fillColor: [0, 74, 173] },
     columnStyles: {
-      0: { halign: 'left' },
-      1: { halign: 'right' }
+      0: { cellWidth: 50 },
+      1: { cellWidth: 130 }
     }
   });
 
@@ -239,10 +238,9 @@ function shareOnWhatsApp() {
 
 function shareOnEmail() {
   const subject = "LOAN SUMMARY - DIGITAL FINANCE";
-  const body = `NAME: ${name}%0D%0ALOAN ID: ${loanId}%0D%0AAMOUNT: ₹${amount.toLocaleString("en-IN")}%0D%0AEMI: ₹${emi.toLocaleString("en-IN")} x ${tenure} MONTHS`;
-  window.location.href = `mailto:?subject=${subject}&body=${body}`;
-}
+  const body = `NAME: ${name}%0D%0ALOAN ID: ${loanId}%0D%0AAMOUNT: ₹${amount.toLocaleString("en-IN")}
 
-  </script>
+EMI: ₹${emi.toLocaleString("en-IN")} x ${tenure} MONTHS; window.location.href = mailto:?subject=${subject}&body=${body}`; } </script>
+
 </body>
 </html>
