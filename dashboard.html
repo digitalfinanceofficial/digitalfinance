@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -60,7 +61,7 @@
   </style>
 </head>
 <body>
-  <div class="container" id="loanReport">
+  <div class="container">
     <h2>LOAN DASHBOARD</h2>
     <table>
       <tr><th>CUSTOMER NAME</th><td id="name">--</td></tr>
@@ -77,63 +78,208 @@
       <tr><th>EMI START DATE</th><td><span id="start">--</span></td></tr>
       <tr><th>EMI END DATE</th><td><span id="end">--</span></td></tr>
       <tr><th>BANK NAME</th><td id="bank">--</td></tr>
+      <tr><th>BRANCH</th><td id="branch">--</td></tr>
       <tr><th>ACCOUNT NUMBER</th><td id="accNo">--</td></tr>
       <tr><th>IFSC CODE</th><td id="ifsc">--</td></tr>
       <tr><th>UPI ID</th><td id="upi">--</td></tr>
-    </table><table class="emi-table" id="emiTable">
-  <thead>
-    <tr>
-      <th>EMI NO.</th>
-      <th>DUE DATE</th>
-      <th>INTEREST (₹)</th>
-      <th>PRINCIPAL (₹)</th>
-      <th>AMOUNT (₹)</th>
-      <th>STATUS</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+    </table>
 
-<div class="btn-group">
-  <button class="btn" onclick="generatePDF()">📥 DOWNLOAD PDF</button>
-  <button class="btn" onclick="shareOnWhatsApp()">📤 WHATSAPP</button>
-  <button class="btn" onclick="shareOnEmail()">📧 EMAIL</button>
-</div>
+    <table class="emi-table" id="emiTable">
+      <thead>
+        <tr>
+          <th>EMI NO.</th>
+          <th>DUE DATE</th>
+          <th>INTEREST (₹)</th>
+          <th>PRINCIPAL (₹)</th>
+          <th>AMOUNT (₹)</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-  </div>  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>  <script>
-    function formatINR(val) {
-      return isNaN(val) ? "--" : `₹${parseInt(val).toLocaleString("en-IN")}`;
+    <div class="btn-group">
+      <button class="btn" onclick="downloadPDF()">📥 DOWNLOAD PDF</button>
+      <button class="btn" onclick="shareOnWhatsApp()">📤 WHATSAPP</button>
+      <button class="btn" onclick="shareOnEmail()">📧 EMAIL</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <script>
+    function generateRandomId(prefix, length) {
+      return prefix + Math.random().toString().slice(2, 2 + length);
     }
 
-    function generatePDF() {
-      const element = document.getElementById("loanReport");
-      html2pdf().from(element).set({
-        margin: 0.5,
-        filename: `${document.getElementById("name").innerText}_Loan_Summary.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-      }).save();
+    localStorage.setItem("loanId", generateRandomId("DIFI", 6));
+    localStorage.setItem("txnId", generateRandomId("TXN", 8));
+
+    const name = (localStorage.getItem("fullName") || "--").toUpperCase();
+    const loanId = localStorage.getItem("loanId") || "--";
+    const txnId = localStorage.getItem("txnId") || "--";
+    const amount = parseInt(localStorage.getItem("finalLoanAmount") || 0);
+    const tenure = parseInt(localStorage.getItem("finalTenure") || 0);
+    const emi = parseInt(localStorage.getItem("finalEMI") || 0);
+    const rate = Math.round((parseFloat(localStorage.getItem("finalInterestRate")) || 0) * 100);
+    const processingFee = parseInt(localStorage.getItem("processingFee") || 0);
+    const disbursed = parseInt(localStorage.getItem("disbursedAmount") || 0);
+    const total = emi * tenure;
+    const accNo = localStorage.getItem("accNo") || "--";
+    const ifsc = (localStorage.getItem("ifsc") || "--").toUpperCase();
+    const upi = (localStorage.getItem("upi") || "--").toUpperCase();
+
+    document.getElementById("name").innerText = name;
+    document.getElementById("loanId").innerText = loanId;
+    document.getElementById("txnId").innerText = txnId;
+    document.getElementById("amount").innerText = amount.toLocaleString("en-IN");
+    document.getElementById("processing").innerText = processingFee.toLocaleString("en-IN");
+    document.getElementById("disbursed").innerText = disbursed.toLocaleString("en-IN");
+    document.getElementById("tenure").innerText = tenure;
+    document.getElementById("emi").innerText = emi.toLocaleString("en-IN");
+    document.getElementById("rate").innerText = rate;
+    document.getElementById("total").innerText = total.toLocaleString("en-IN");
+    document.getElementById("accNo").innerText = accNo;
+    document.getElementById("ifsc").innerText = ifsc;
+    document.getElementById("upi").innerText = upi;
+
+    const tbody = document.querySelector("#emiTable tbody");
+    const today = new Date();
+    const applyDate = today.toLocaleDateString("en-IN");
+    const startDate = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
+    const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + tenure - 1, startDate.getDate());
+    document.getElementById("apply").innerText = applyDate;
+    document.getElementById("start").innerText = startDate.toLocaleDateString("en-IN");
+    document.getElementById("end").innerText = endDate.toLocaleDateString("en-IN");
+
+    const monthlyRate = rate / 100 / 12;
+    let balance = amount;
+
+    for (let i = 0; i < tenure; i++) {
+      const due = new Date(startDate.getFullYear(), startDate.getMonth() + i, startDate.getDate());
+      const interest = Math.round(balance * monthlyRate);
+      const principal = emi - interest;
+      balance -= principal;
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${due.toLocaleDateString("en-IN")}</td>
+        <td>${interest.toLocaleString("en-IN")}</td>
+        <td>${principal.toLocaleString("en-IN")}</td>
+        <td>${emi.toLocaleString("en-IN")}</td>
+        <td>PENDING</td>
+      `;
+      tbody.appendChild(row);
+    }
+
+    async function getBankDetailsFromIFSC(ifsc) {
+      try {
+        const response = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
+        if (!response.ok) throw new Error("Invalid IFSC");
+        const data = await response.json();
+        return {
+          bank: data.BANK || "--",
+          branch: data.BRANCH || "--"
+        };
+      } catch (err) {
+        console.error("Bank fetch error:", err);
+        return { bank: "--", branch: "--" };
+      }
+    }
+
+    async function updateBankDetails() {
+      if (ifsc !== "--") {
+        const result = await getBankDetailsFromIFSC(ifsc);
+        document.getElementById("bank").innerText = result.bank;
+        document.getElementById("branch").innerText = result.branch;
+      } else {
+        document.getElementById("bank").innerText = "--";
+        document.getElementById("branch").innerText = "--";
+      }
+    }
+    updateBankDetails();
+
+    async function downloadPDF() {
+      navigator.vibrate?.(100);
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("DIGITAL FINANCE", 105, 15, null, null, "center");
+      doc.setFontSize(14);
+      doc.text("Loan Summary Report", 105, 23, null, null, "center");
+
+      const info = [
+        ["Customer Name", name],
+        ["Loan ID", loanId],
+        ["Transaction ID", txnId],
+        ["Loan Amount", `₹${amount.toLocaleString("en-IN")}`],
+        ["Processing Fee", `₹${processingFee.toLocaleString("en-IN")}`],
+        ["Disbursed Amount", `₹${disbursed.toLocaleString("en-IN")}`],
+        ["Tenure", `${tenure} months`],
+        ["EMI", `₹${emi.toLocaleString("en-IN")}/month`],
+        ["Interest Rate", `${rate}%`],
+        ["Total Payable", `₹${total.toLocaleString("en-IN")}`],
+        ["Loan Apply Date", applyDate],
+        ["EMI Start Date", startDate.toLocaleDateString("en-IN")],
+        ["EMI End Date", endDate.toLocaleDateString("en-IN")],
+        ["Bank Name", document.getElementById("bank").innerText],
+        ["Branch", document.getElementById("branch").innerText],
+        ["Account Number", accNo],
+        ["IFSC Code", ifsc],
+        ["UPI ID", upi],
+      ];
+
+      doc.autoTable({
+        startY: 30,
+        head: [["Detail", "Value"]],
+        body: info,
+        theme: 'grid',
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [0, 74, 173] },
+        columnStyles: {
+          0: { cellWidth: 50 },
+          1: { cellWidth: 130 }
+        }
+      });
+
+      const emiRows = Array.from(document.querySelectorAll("#emiTable tbody tr")).map(row => {
+        const cols = row.querySelectorAll("td");
+        return [
+          cols[0].innerText,
+          cols[1].innerText,
+          `₹${cols[2].innerText}`,
+          `₹${cols[3].innerText}`,
+          `₹${cols[4].innerText}`,
+          cols[5].innerText
+        ];
+      });
+
+      if (emiRows.length > 0) {
+        doc.autoTable({
+          startY: doc.lastAutoTable.finalY + 10,
+          head: [["EMI No.", "Due Date", "Interest", "Principal", "Amount", "Status"]],
+          body: emiRows,
+          theme: 'striped',
+          styles: { fontSize: 9 },
+          headStyles: { fillColor: [0, 74, 173] },
+        });
+      }
+
+      doc.save(`${name}_Loan_Summary.pdf`);
     }
 
     function shareOnWhatsApp() {
-      const name = document.getElementById("name").innerText;
-      const loanId = document.getElementById("loanId").innerText;
-      const amount = document.getElementById("amount").innerText;
-      const emi = document.getElementById("emi").innerText;
-      const tenure = document.getElementById("tenure").innerText;
-      const msg = `LOAN SUMMARY\nNAME: ${name}\nLOAN ID: ${loanId}\nAMOUNT: ₹${amount}\nEMI: ₹${emi} x ${tenure} MONTHS`;
+      const msg = `LOAN SUMMARY\nNAME: ${name}\nLOAN ID: ${loanId}\nAMOUNT: ₹${amount.toLocaleString("en-IN")}\nEMI: ₹${emi.toLocaleString("en-IN")} x ${tenure} MONTHS`;
       window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     function shareOnEmail() {
-      const name = document.getElementById("name").innerText;
-      const loanId = document.getElementById("loanId").innerText;
-      const amount = document.getElementById("amount").innerText;
-      const emi = document.getElementById("emi").innerText;
-      const tenure = document.getElementById("tenure").innerText;
       const subject = "LOAN SUMMARY - DIGITAL FINANCE";
-      const body = `NAME: ${name}%0D%0ALOAN ID: ${loanId}%0D%0AAMOUNT: ₹${amount}%0D%0AEMI: ₹${emi} x ${tenure} MONTHS`;
+      const body = `NAME: ${name}%0D%0ALOAN ID: ${loanId}%0D%0AAMOUNT: ₹${amount.toLocaleString("en-IN")}%0D%0AEMI: ₹${emi.toLocaleString("en-IN")} x ${tenure} MONTHS`;
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
-  </script></body>
+  </script>
+</body>
 </html>
