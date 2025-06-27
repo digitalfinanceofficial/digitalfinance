@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Digital Finance Admin Login</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #001f3f, #004aad, #00bcd4);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.6);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      position: relative;
+    }
+
+    .brand {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #ffffff;
+      text-shadow: 0 0 10px #00f0ff;
+    }
+
+    .glow-text {
+      font-size: 16px;
+      color: #00f0ff;
+      margin-bottom: 30px;
+      font-weight: 600;
+      animation: glow 2s infinite ease-in-out;
+    }
+
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 5px #00f0ff; }
+      50% { text-shadow: 0 0 15px #00f0ff; }
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      margin: 10px 0;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 5px #00f0ff;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background-color: #00bcd4;
+      border: none;
+      color: white;
+      font-size: 17px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+      box-shadow: 0 0 10px #00f0ff;
+      transition: 0.3s ease;
+      position: relative;
+    }
+
+    button:hover {
+      box-shadow: 0 0 20px #00f0ff;
+    }
+
+    .loading-icon {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid white;
+      border-top: 3px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .footer-note {
+      margin-top: 25px;
+      font-size: 13px;
+      color: #cceaff;
+    }
+
+    #errorPopup {
+      position: absolute;
+      top: -60px;
+      left: 0;
+      right: 0;
+      margin: auto;
+      background: #ff4d4d;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: none;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    #errorPopup.show {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; top: -80px; }
+      to { opacity: 1; top: -60px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="errorPopup">🔐 Access Denied: Invalid User ID or Password. Please verify your credentials and try again.</div>
+    <div class="brand">DIGITAL FINANCE</div>
+    <div class="glow-text">ADMIN ACCESS PORTAL</div>
+    <form id="loginForm">
+      <input type="text" id="userid" placeholder="User ID" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit" id="loginBtn">🔐 Login</button>
+    </form>
+    <div class="footer-note">🔐 RBI Registered NBFC Partner – Digital Finance</div>
+  </div>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const uid = document.getElementById("userid").value.trim();
+      const pwd = document.getElementById("password").value.trim();
+      const btn = document.getElementById("loginBtn");
+      const errorPopup = document.getElementById("errorPopup");
+
+      // Mobile vibration
+      if (navigator.vibrate) navigator.vibrate(100);
+
+      // Check login
+      if (uid === "Digital893492" && pwd === "FINANCE@0250") {
+        btn.innerHTML = `<span class="loading-icon"></span>Verifying...`;
+        errorPopup.classList.remove("show");
+        setTimeout(() => {
+          window.location.href = "customer-details.html";
+        }, 2000);
+      } else {
+        errorPopup.innerText = "🔐 Access Denied: Invalid User ID or Password. Please verify your credentials and try again.";
+        errorPopup.classList.add("show");
+        setTimeout(() => {
+          errorPopup.classList.remove("show");
+        }, 3000);
+      }
+    });
+  </script>
+</body>
+</html>

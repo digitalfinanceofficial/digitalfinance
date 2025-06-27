@@ -1,0 +1,213 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aadhaar & PAN Details - Digital Finance</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f3f7fd;
+      margin: 0;
+      padding: 0;
+      position: relative;
+    }
+    .header {
+      background: #004aad;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 26px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.08);
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #004aad;
+      margin-bottom: 25px;
+      border-left: 5px solid #004aad;
+      padding-left: 10px;
+    }
+    .field {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    input, select {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+    input:focus, select:focus {
+      border-color: #007acc;
+      box-shadow: 0 0 5px #007acc;
+      outline: none;
+    }
+    input[type="file"] {
+      padding: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 17px;
+      font-weight: bold;
+      background: #0066ff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #004dcc;
+    }
+    .footer-note {
+      margin-top: 30px;
+      font-size: 13px;
+      color: #888;
+      text-align: center;
+    }
+    .error-border {
+      border-color: red !important;
+    }
+    .loader-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 999;
+    }
+    .loader-overlay::before {
+      content: '';
+      width: 40px;
+      height: 40px;
+      border: 5px solid #ccc;
+      border-top-color: #004aad;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    .loader-text {
+      margin-top: 15px;
+      font-size: 16px;
+      color: #333;
+      font-weight: 500;
+      text-align: center;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">DIGITAL FINANCE</div>
+  <div class="container">
+    <div class="section-title">📁 Aadhaar & PAN Details</div>
+    <form id="aadharPanForm">
+      <div class="field">
+        <label>Aadhaar Number</label>
+        <input type="text" id="aadhaar" placeholder="Enter 12-digit Aadhaar number" maxlength="12" required />
+      </div>
+      <div class="field">
+        <label>PAN Number</label>
+        <input type="text" id="pan" placeholder="Enter 10-digit PAN number (e.g. ABCDE1234F)" maxlength="10" required />
+      </div>
+      <div class="field">
+        <label>Upload Aadhaar Front (Optional)</label>
+        <input type="file" accept="image/*" capture="environment" id="aadhaarFront" />
+      </div>
+      <div class="field">
+        <label>Upload Aadhaar Back (Optional)</label>
+        <input type="file" accept="image/*" capture="environment" id="aadhaarBack" />
+      </div>
+      <div class="field">
+        <label>Upload PAN Card (Optional)</label>
+        <input type="file" accept="image/*" capture="environment" id="panCard" />
+      </div>
+      <div class="field">
+        <label>Upload Selfie (Optional)</label>
+        <input type="file" accept="image/*" capture="user" id="selfie" />
+      </div>
+      <button type="submit" id="submitBtn">Continue</button>
+    </form>
+    <div class="footer-note">🔐 RBI Registered NBFC Partner – Digital Finance</div>
+  </div>  <div class="loader-overlay" id="loader">
+    <div></div>
+    <div class="loader-text">checking your information...</div>
+  </div>  <script>
+    const form = document.getElementById("aadharPanForm");
+    const btn = document.getElementById("submitBtn");
+    const loader = document.getElementById("loader");
+    const aadhaarInput = document.getElementById("aadhaar");
+    const panInput = document.getElementById("pan");
+
+    // Live validation
+    aadhaarInput.addEventListener("input", () => {
+      aadhaarInput.value = aadhaarInput.value.replace(/[^0-9]/g, "");
+    });
+
+    panInput.addEventListener("input", () => {
+      panInput.value = panInput.value.toUpperCase();
+    });
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      let hasError = false;
+
+      [aadhaarInput, panInput].forEach(el => {
+        el.classList.remove("error-border");
+        if (!el.value.trim()) {
+          el.classList.add("error-border");
+          hasError = true;
+        }
+      });
+
+      if (aadhaarInput.value.length !== 12) {
+        aadhaarInput.classList.add("error-border");
+        hasError = true;
+      }
+
+      const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+      if (!panRegex.test(panInput.value)) {
+        panInput.classList.add("error-border");
+        hasError = true;
+      }
+
+      if (hasError) {
+        navigator.vibrate?.(200);
+        return;
+      }
+
+      localStorage.setItem("aadhaarNumber", aadhaarInput.value);
+      localStorage.setItem("panNumber", panInput.value);
+
+      loader.style.display = "flex";
+      navigator.vibrate?.(100);
+
+      setTimeout(() => {
+        window.location.href = "address-details.html";
+      }, 2500);
+    });
+  </script></body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Company Details - Digital Finance</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e3f2fd, #fce4ec);
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      background-color: #004aad;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 26px;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 30px;
+      background-color: white;
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 30px 0 15px;
+      border-left: 6px solid #004aad;
+      padding-left: 10px;
+      color: #004aad;
+      text-align: center;
+    }
+    .field {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    input, select {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+      transition: 0.3s ease;
+    }
+    input:focus, select:focus {
+      border-color: #004aad;
+      box-shadow: 0 0 6px #004aad;
+      outline: none;
+    }
+    input::placeholder {
+      color: #999;
+    }
+    button {
+      width: 100%;
+      margin-top: 30px;
+      padding: 14px;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      font-size: 17px;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+    .footer-note {
+      margin-top: 30px;
+      font-size: 14px;
+      text-align: center;
+      color: #888;
+    }
+    .error-border {
+      border: 2px solid red !important;
+    }
+    .loader-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 999;
+    }
+    .loader-overlay::before {
+      content: '';
+      width: 40px;
+      height: 40px;
+      border: 5px solid #ccc;
+      border-top-color: #004aad;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    .loader-text {
+      margin-top: 15px;
+      font-size: 16px;
+      color: #333;
+      font-weight: 500;
+      text-align: center;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">DIGITAL FINANCE</div>
+  <div class="container">
+    <form id="companyForm">
+      <div class="section-title">💼 PROFESSION DETAILS</div>
+
+      <div class="field">
+        <label>Profession Type</label>
+        <select id="profession" required>
+          <option value="">Select Profession</option>
+          <option>Salaried</option>
+          <option>Self-Employed</option>
+          <option>Business</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Job Designation</label>
+        <input id="designation" type="text" placeholder="e.g. Sales Executive" required />
+      </div>
+
+      <div class="field">
+        <label>Company / Business Name</label>
+        <input id="companyName" type="text" placeholder="e.g. HDFC Bank / Grocery Store" required />
+      </div>
+
+      <div class="field">
+        <label>Monthly Income (in ₹)</label>
+        <input id="salary" type="number" placeholder="e.g. 20000" required />
+      </div>
+
+      <div class="section-title">🏢 COMPANY / WORK ADDRESS</div>
+
+      <div class="field">
+        <label>Work Address</label>
+        <input id="workAddress" type="text" placeholder="e.g. Near Main Market" required />
+      </div>
+
+      <div class="field">
+        <label>Street Name</label>
+        <input id="street" type="text" placeholder="e.g. Station Road" required />
+      </div>
+
+      <div class="field">
+        <label>Landmark</label>
+        <input id="landmark" type="text" placeholder="e.g. Near SBI ATM" required />
+      </div>
+
+      <div class="field">
+        <label>City / District</label>
+        <input id="city" type="text" placeholder="Auto Filled" readonly required />
+      </div>
+
+      <div class="field">
+        <label>State</label>
+        <input id="state" type="text" placeholder="Auto Filled" readonly required />
+      </div>
+
+      <div class="field">
+        <label>Pin Code</label>
+        <input id="pin" type="text" placeholder="e.g. 208001" maxlength="6" required />
+      </div>
+
+      <button type="submit">Continue</button>
+    </form>
+
+    <div class="footer-note">🔐 RBI Registered NBFC Partner – Digital Finance</div>
+  </div>
+
+  <div class="loader-overlay" id="loader">
+    <div></div>
+    <div class="loader-text">checking your information...</div>
+  </div>
+
+  <script>
+    const loader = document.getElementById("loader");
+
+    document.getElementById("pin").addEventListener("blur", function () {
+      const pin = this.value.trim();
+      if (/^\d{6}$/.test(pin)) {
+        fetch(`https://api.postalpincode.in/pincode/${pin}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data[0].Status === "Success") {
+              document.getElementById("city").value = data[0].PostOffice[0].District;
+              document.getElementById("state").value = data[0].PostOffice[0].State;
+            }
+          });
+      }
+    });
+
+    document.getElementById("companyForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      let valid = true;
+      document.querySelectorAll('input[required], select[required]').forEach(input => {
+        input.classList.remove("error-border");
+        if (!input.value.trim()) {
+          input.classList.add("error-border");
+          valid = false;
+        }
+      });
+
+      const pin = document.getElementById("pin").value.trim();
+      if (!/^\d{6}$/.test(pin)) {
+        document.getElementById("pin").classList.add("error-border");
+        valid = false;
+      }
+
+      if (!valid) {
+        navigator.vibrate?.(200);
+        return;
+      }
+
+      loader.style.display = "flex";
+      navigator.vibrate?.(100);
+
+      localStorage.setItem("profession", document.getElementById("profession").value);
+      localStorage.setItem("designation", document.getElementById("designation").value);
+      localStorage.setItem("companyName", document.getElementById("companyName").value);
+      localStorage.setItem("salary", document.getElementById("salary").value);
+      localStorage.setItem("workAddress", document.getElementById("workAddress").value);
+      localStorage.setItem("street", document.getElementById("street").value);
+      localStorage.setItem("landmark", document.getElementById("landmark").value);
+      localStorage.setItem("city", document.getElementById("city").value);
+      localStorage.setItem("state", document.getElementById("state").value);
+      localStorage.setItem("pin", pin);
+
+      setTimeout(() => {
+        window.location.href = "approval.html";
+      }, 2500);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Loan Transferred - Digital Finance</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #e6f9ea;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .box {
+      background: #fff;
+      padding: 30px 20px;
+      border-radius: 18px;
+      box-shadow: 0 0 14px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+      position: relative;
+    }
+
+    .box img.tick {
+      width: 80px;
+      margin-bottom: 20px;
+    }
+
+    .box h2 {
+      color: #2d8f2d;
+      margin-bottom: 10px;
+      font-size: 22px;
+    }
+
+    .box p {
+      color: #333;
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+
+    .box .info {
+      font-weight: bold;
+      color: #004aad;
+      margin-bottom: 18px;
+    }
+
+    .footer {
+      font-size: 13px;
+      color: #777;
+      margin-top: 20px;
+    }
+
+    .btn-dashboard {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 12px 20px;
+      background-color: #004aad;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .btn-dashboard.loading {
+      pointer-events: none;
+      background-color: #888;
+    }
+
+    .loader {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #ccc;
+      border-top-color: #004aad;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 480px) {
+      .box { padding: 20px 16px; }
+      .box h2 { font-size: 20px; }
+      .btn-dashboard { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <img src="success.png" class="tick" alt="Success Tick" />
+    <h2 id="title">Congratulations!</h2>
+    <p>Your loan has been credited to your bank account.</p>
+    <div class="info">₹<span id="amount">0</span> Transferred to A/C ****<span id="lastDigits">0000</span></div>
+    <p style="color: #555; font-size: 14px; margin-bottom: 10px;">Amount will be credited within 1 to 3 hours.</p>
+
+    <button class="btn-dashboard" onclick="goToDashboard(this)">Go to Dashboard</button>
+
+    <div class="loader" id="spinner"><div class="spinner"></div></div>
+    <div class="footer">🔐 RBI Registered NBFC Partner • Digital Finance</div>
+  </div>
+
+  <script>
+    function toTitleCase(str) {
+      return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+    }
+
+    const rawAmount = parseInt(localStorage.getItem("finalLoanAmount")) || 0;
+    const acc = localStorage.getItem("accNo") || "";
+    const lastDigits = acc.slice(-4);
+    const rawName = localStorage.getItem("fullName") || "User";
+    const formattedName = toTitleCase(rawName);
+
+    const processingFee = Math.round(rawAmount * 0.036);
+    const disbursedAmount = rawAmount - processingFee;
+
+    // Save disbursed amount if needed
+    localStorage.setItem("disbursedAmount", disbursedAmount);
+    localStorage.setItem("finalAccountEnding", lastDigits);
+
+    document.getElementById("amount").innerText = disbursedAmount.toLocaleString('en-IN');
+    document.getElementById("lastDigits").innerText = lastDigits;
+    document.getElementById("title").innerText = `Congratulations, ${formattedName}!`;
+
+    function goToDashboard(btn) {
+      btn.classList.add("loading");
+      document.getElementById("spinner").style.display = "block";
+      navigator.vibrate?.(100);
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 2500);
+    }
+  </script>
+</body>
+</html>

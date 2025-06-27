@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Loan Approved - Digital Finance</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4faff;
+      overflow: hidden;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #fff, 0 0 20px #004aad; }
+      to   { text-shadow: 0 0 20px #fff, 0 0 40px #004aad; }
+    }
+
+    .header {
+      background: #004aad;
+      color: white;
+      text-align: center;
+      padding: 18px;
+      font-size: 22px;
+      font-weight: bold;
+      text-shadow: 0 0 10px #ffffff;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    .emoji {
+      position: fixed;
+      top: -40px;
+      font-size: 28px;
+      z-index: 5;
+      animation: drop 4s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes drop {
+      0% { transform: translateY(-40px); opacity: 1; }
+      100% { transform: translateY(100vh); opacity: 0; }
+    }
+
+    .card {
+      margin: 30px auto;
+      max-width: 380px;
+      background: white;
+      border-radius: 18px;
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      position: relative;
+      z-index: 2;
+    }
+
+    .card h2 {
+      color: #004aad;
+      font-size: 22px;
+      margin-bottom: 5px;
+    }
+
+    .card h3 {
+      font-size: 18px;
+      margin-top: 5px;
+      font-weight: 600;
+      color: #2d8f2d;
+    }
+
+    .image {
+      margin: 20px 0;
+      animation: floatUpDown 3s ease-in-out infinite;
+    }
+
+    @keyframes floatUpDown {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+
+    .image img {
+      width: 100px;
+      border-radius: 50%;
+    }
+
+    .amount {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 20px 0 10px;
+    }
+
+    .tenure {
+      font-weight: 500;
+      color: #444;
+    }
+
+    .repayment {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .continue-btn {
+      margin-top: 25px;
+      background: #004aad;
+      color: white;
+      border: none;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 10px;
+      width: 90%;
+      cursor: pointer;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 13px;
+      margin-top: 15px;
+      color: #888;
+    }
+
+    .loader-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.95);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 999;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 5px solid #ccc;
+      border-top-color: #004aad;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loader-text {
+      margin-top: 15px;
+      font-size: 16px;
+      color: #333;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">DIGITAL FINANCE</div>
+
+  <!-- Emoji layer -->
+  <div id="emoji-layer"></div>
+
+  <div class="card">
+    <h2 id="userName">Hello, Customer</h2>
+    <h3>Loan Approved</h3>
+
+    <div class="image">
+      <img src="celebration.png" alt="Celebration" />
+    </div>
+
+    <div class="amount" id="amount">₹0</div>
+    <div class="tenure" id="tenure">Loan Tenure: -- Months</div>
+    <p class="repayment">One-time Repayment<br>Pay full loan amount in one payment</p>
+
+    <button class="continue-btn" onclick="goNext(this)">Continue</button>
+    <div class="footer-note">🔐 RBI Registered NBFC Partner – Digital Finance</div>
+  </div>
+
+  <div class="loader-overlay" id="loader">
+    <div class="spinner"></div>
+    <div class="loader-text">Processing your loan approval...</div>
+  </div>
+
+  <script>
+    function toTitleCase(str) {
+      return str.replace(/\w\S*/g, function(txt){
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+      });
+    }
+
+    const rawName = localStorage.getItem("fullName") || "Customer";
+    const name = toTitleCase(rawName);
+    const salary = parseInt(localStorage.getItem("salary")) || 0;
+
+    document.getElementById("userName").innerText = `Hello, ${name}`;
+
+    function getRandomInRange(min, max, step) {
+      const range = Math.floor((max - min) / step) + 1;
+      const randomStep = Math.floor(Math.random() * range);
+      return min + (randomStep * step);
+    }
+
+    let loanAmount = 0;
+    let loanTenure = 0;
+
+    if (salary < 5000) {
+      loanAmount = getRandomInRange(5000, 15000, 1000);
+      loanTenure = 3;
+    } else if (salary < 10000) {
+      loanAmount = getRandomInRange(15000, 25000, 1000);
+      loanTenure = 6;
+    } else if (salary < 20000) {
+      loanAmount = getRandomInRange(25000, 50000, 1000);
+      loanTenure = 9;
+    } else if (salary < 30000) {
+      loanAmount = getRandomInRange(50000, 100000, 5000);
+      loanTenure = 12;
+    } else if (salary < 45000) {
+      loanAmount = getRandomInRange(100000, 150000, 5000);
+      loanTenure = 15;
+    } else if (salary < 60000) {
+      loanAmount = getRandomInRange(150000, 200000, 5000);
+      loanTenure = 18;
+    } else {
+      loanAmount = getRandomInRange(200000, 250000, 5000);
+      loanTenure = 24;
+    }
+
+    // Display
+    const formattedAmount = new Intl.NumberFormat('en-IN').format(loanAmount);
+    document.getElementById("amount").innerText = `₹${formattedAmount}`;
+    document.getElementById("tenure").innerText = `Loan Tenure: ${loanTenure} Months`;
+
+    // Save to localStorage
+    localStorage.setItem("approvedAmount", loanAmount);
+    localStorage.setItem("approvedTenure", loanTenure);
+
+    function goNext(btn) {
+      btn.disabled = true;
+      navigator.vibrate?.(200);
+      document.getElementById('loader').style.display = 'flex';
+
+      setTimeout(() => {
+        window.location.href = "bank-details.html";
+      }, 3000);
+    }
+
+    // Emoji Animation
+    const emojiList = ['🎉', '🎊'];
+    const emojiLayer = document.getElementById("emoji-layer");
+
+    function createEmoji() {
+      const emoji = document.createElement("div");
+      emoji.classList.add("emoji");
+      emoji.innerText = emojiList[Math.floor(Math.random() * emojiList.length)];
+      emoji.style.left = Math.random() * 100 + "vw";
+      emoji.style.animationDuration = (Math.random() * 2 + 3) + "s";
+      emojiLayer.appendChild(emoji);
+      setTimeout(() => emoji.remove(), 5000);
+    }
+
+    setInterval(createEmoji, 200);
+  </script>
+</body>
+</html>

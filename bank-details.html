@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EMI Selection - Digital Finance</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4faff;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 420px;
+      background: #ffffff;
+      margin: 30px auto;
+      padding: 25px;
+      border-radius: 14px;
+      box-shadow: 0 0 14px rgba(0, 0, 0, 0.08);
+      position: relative;
+      z-index: 1;
+    }
+
+    h2 {
+      text-align: center;
+      color: #004aad;
+      margin-bottom: 10px;
+    }
+
+    .approved-box {
+      background-color: #e6f4e9;
+      padding: 12px;
+      text-align: center;
+      border-radius: 8px;
+      font-weight: bold;
+      color: #2d8f2d;
+      margin-bottom: 20px;
+      box-shadow: inset 0 0 5px #b6e7c5;
+      font-size: 16px;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: 600;
+      color: #222;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 14px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    .btn {
+      width: 100%;
+      background: #004aad;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.3s;
+    }
+
+    .btn:hover {
+      background: #003a8b;
+    }
+
+    .result {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #2d8f2d;
+    }
+
+    .loader-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 99;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 5px solid #ccc;
+      border-top-color: #004aad;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loader-text {
+      margin-top: 15px;
+      font-size: 16px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 20px 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Finalize Loan & EMI</h2>
+
+    <div class="approved-box" id="approvedAmount">Approved Amount: ₹--</div>
+
+    <label>Enter Loan Amount:</label>
+    <input type="number" id="loanInput" placeholder="Enter within approval limit" />
+
+    <label>Select Tenure (Months):</label>
+    <select id="tenureSelect"></select>
+
+    <div class="result" id="emiOutput">EMI: ₹0/month</div>
+    <div class="result" id="extraDetails"></div>
+
+    <button class="btn" onclick="submitEMI()">Continue</button>
+  </div>
+
+  <div class="loader-overlay" id="loader">
+    <div class="spinner"></div>
+    <div class="loader-text">Finalizing your EMI details...</div>
+  </div>
+
+  <script>
+    const approvedAmount = parseInt(localStorage.getItem("approvedAmount")) || 0;
+    const approvedTenure = parseInt(localStorage.getItem("approvedTenure")) || 12;
+    const salary = parseInt(localStorage.getItem("salary")) || 0;
+
+    document.getElementById("approvedAmount").innerText = `Approved Amount: ₹${approvedAmount.toLocaleString('en-IN')}`;
+
+    const tenureDropdown = document.getElementById("tenureSelect");
+
+    for (let i = 1; i <= approvedTenure; i++) {
+      const option = document.createElement("option");
+      option.value = i;
+      option.text = `${i} Month${i > 1 ? 's' : ''}`;
+      tenureDropdown.appendChild(option);
+    }
+
+    const loanInput = document.getElementById("loanInput");
+    const emiOutput = document.getElementById("emiOutput");
+    const extraDetails = document.getElementById("extraDetails");
+
+    loanInput.addEventListener("input", calculateEMI);
+    tenureDropdown.addEventListener("change", calculateEMI);
+
+    function getInterestRate(salary) {
+      if (salary <= 10000) return 0.26;
+      if (salary <= 20000) return 0.24;
+      if (salary <= 30000) return 0.22;
+      if (salary <= 50000) return 0.18;
+      if (salary <= 100000) return 0.16;
+      return 0.14;
+    }
+
+    function calculateEMI() {
+      const loan = parseInt(loanInput.value);
+      const tenure = parseInt(tenureDropdown.value);
+
+      if (!loan || loan > approvedAmount) {
+        emiOutput.innerText = "Please enter valid loan amount";
+        extraDetails.innerText = "";
+        return;
+      }
+
+      const rate = getInterestRate(salary);
+      const processingFee = Math.round(loan * 0.036);
+      const disbursed = loan - processingFee;
+      const total = loan + (loan * rate);
+      const emi = Math.round(total / tenure);
+
+      emiOutput.innerText = `EMI: ₹${emi.toLocaleString('en-IN')}/month @ ${Math.round(rate * 100)}% Interest`;
+
+      extraDetails.innerHTML = `
+        Processing Fee: ₹${processingFee.toLocaleString('en-IN')}<br>
+        Disbursed Amount: ₹${disbursed.toLocaleString('en-IN')}<br>
+        Total Payable: ₹${Math.round(total).toLocaleString('en-IN')}
+      `;
+
+      localStorage.setItem("finalLoanAmount", loan);
+      localStorage.setItem("finalTenure", tenure);
+      localStorage.setItem("finalInterestRate", rate);
+      localStorage.setItem("finalEMI", emi);
+      localStorage.setItem("processingFee", processingFee);
+      localStorage.setItem("disbursedAmount", disbursed);
+      localStorage.setItem("totalPayable", Math.round(total));
+    }
+
+    function submitEMI() {
+      const loan = parseInt(loanInput.value);
+      const tenure = parseInt(tenureDropdown.value);
+      const emi = localStorage.getItem("finalEMI");
+
+      if (!loan || loan > approvedAmount || !emi || !tenure) {
+        alert("Please enter valid loan amount and tenure.");
+        return;
+      }
+
+      navigator.vibrate?.(100);
+      document.getElementById("loader").style.display = "flex";
+
+      setTimeout(() => {
+        window.location.href = "transfer.html";
+      }, 2500);
+    }
+  </script>
+
+</body>
+</html>

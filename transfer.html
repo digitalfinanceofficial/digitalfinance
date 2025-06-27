@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transfer Loan - Digital Finance</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4faff;
+      padding: 20px;
+    }
+    .container {
+      max-width: 420px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    .header {
+      background: #004aad;
+      color: white;
+      text-align: center;
+      padding: 16px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 8px 8px 0 0;
+      margin-bottom: 20px;
+    }
+    h3 {
+      color: #004aad;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .summary-box {
+      background: #e7f0ff;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+      text-align: center;
+      font-size: 15px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 14px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      text-transform: uppercase;
+    }
+    input.error {
+      border-color: red;
+    }
+    .btn {
+      width: 100%;
+      background: #004aad;
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    .footer {
+      text-align: center;
+      font-size: 13px;
+      color: #777;
+      margin-top: 18px;
+    }
+    .loader {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 5px solid #ccc;
+      border-top-color: #004aad;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">DIGITAL FINANCE</div>
+
+    <h3>Loan Summary</h3>
+    <div class="summary-box">
+      <div><strong>Loan Amount:</strong> ₹<span id="loanAmt">0</span></div>
+      <div><strong>EMI:</strong> ₹<span id="emiAmt">0</span>/month</div>
+      <div><strong>Tenure:</strong> <span id="loanTenure">--</span> months</div>
+      <div><strong>Interest:</strong> <span id="interestRate">--</span>%</div>
+      <div><strong>Processing Fee:</strong> ₹<span id="fee">0</span></div>
+      <div><strong>Disbursed Amount:</strong> ₹<span id="disbursed">0</span></div>
+    </div>
+
+    <h3>Bank Details</h3>
+    <label>Account Holder Name</label>
+    <input type="text" id="accName" readonly />
+
+    <label>Account Number</label>
+    <input type="number" id="accNo" placeholder="e.g. 1234567890" />
+
+    <label>Confirm Account Number</label>
+    <input type="number" id="accConfirm" placeholder="Re-enter Account Number" />
+
+    <label>IFSC Code</label>
+    <input type="text" id="ifsc" placeholder="e.g. SBIN0001234" />
+
+    <label>Bank Name</label>
+    <input type="text" id="bankName" readonly />
+
+    <label>Branch</label>
+    <input type="text" id="branch" readonly />
+
+    <button class="btn" id="transferBtn" onclick="transferNow(this)">Transfer ₹</button>
+
+    <div class="footer">🔐 Safe & Secure • Digital Finance</div>
+  </div>
+
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <div style="margin-top: 12px; font-size: 15px; color: #004aad; font-weight: bold;">
+      Transferring your loan amount, please wait...
+    </div>
+  </div>
+
+  <script>
+    const loan = parseInt(localStorage.getItem("finalLoanAmount")) || 0;
+    const emi = parseInt(localStorage.getItem("finalEMI")) || 0;
+    const tenure = parseInt(localStorage.getItem("finalTenure")) || 0;
+    const rate = Math.round((parseFloat(localStorage.getItem("finalInterestRate")) || 0) * 100);
+    const fullName = localStorage.getItem("fullName") || "Customer";
+
+    const fee = Math.round(loan * 0.036);
+    const disbursed = loan - fee;
+
+    document.getElementById("loanAmt").innerText = loan.toLocaleString('en-IN');
+    document.getElementById("emiAmt").innerText = emi.toLocaleString('en-IN');
+    document.getElementById("loanTenure").innerText = tenure;
+    document.getElementById("interestRate").innerText = rate;
+    document.getElementById("fee").innerText = fee.toLocaleString('en-IN');
+    document.getElementById("disbursed").innerText = disbursed.toLocaleString('en-IN');
+
+    document.getElementById("accName").value = fullName.toUpperCase();
+    document.getElementById("transferBtn").innerText = `Transfer ₹${disbursed.toLocaleString('en-IN')}`;
+
+    // Save to localStorage
+    localStorage.setItem("processingFee", fee);
+    localStorage.setItem("disbursedAmount", disbursed);
+
+    // Input validation
+    document.getElementById("accNo").addEventListener("input", () => {
+      const acc = document.getElementById("accNo");
+      acc.classList.remove("error");
+      if (acc.value.length < 9) acc.classList.add("error");
+    });
+
+    document.getElementById("accConfirm").addEventListener("input", () => {
+      const acc = document.getElementById("accNo").value.trim();
+      const confirm = document.getElementById("accConfirm");
+      confirm.classList.remove("error");
+      if (confirm.value !== acc) confirm.classList.add("error");
+    });
+
+    document.getElementById("ifsc").addEventListener("blur", async () => {
+      const ifsc = document.getElementById("ifsc").value.trim().toUpperCase();
+      if (!ifsc) return;
+      document.getElementById("bankName").value = "Fetching...";
+      document.getElementById("branch").value = "Please wait...";
+      try {
+        const res = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
+        const data = await res.json();
+        document.getElementById("bankName").value = data.BANK || "Not Found";
+        document.getElementById("branch").value = data.BRANCH || "Not Found";
+      } catch {
+        document.getElementById("bankName").value = "Invalid IFSC";
+        document.getElementById("branch").value = "Invalid";
+      }
+    });
+
+    function transferNow(btn) {
+      const acc = document.getElementById("accNo").value.trim();
+      const confirm = document.getElementById("accConfirm").value.trim();
+      const ifsc = document.getElementById("ifsc").value.trim();
+
+      if (!acc || !confirm || acc !== confirm || acc.length < 9 || !ifsc) {
+        alert("Please enter valid account details.");
+        return;
+      }
+
+      // Save details
+      localStorage.setItem("accNo", acc);
+      localStorage.setItem("ifsc", ifsc);
+
+      navigator.vibrate?.(100);
+      document.getElementById("loader").style.display = "flex";
+
+      setTimeout(() => {
+        window.location.href = "success.html";
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
