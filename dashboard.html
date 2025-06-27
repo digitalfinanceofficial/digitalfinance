@@ -185,16 +185,12 @@
       row.innerHTML = `
         <td>${i + 1}</td>
         <td>${due.toLocaleDateString("en-IN")}</td>
-        <td>${interest.toLocaleString("en-IN")}</td>
-        <td>${principal.toLocaleString("en-IN")}</td>
-        <td>${emi.toLocaleString("en-IN")}</td>
+        <td>₹${interest.toLocaleString("en-IN")}</td>
+        <td>₹${principal.toLocaleString("en-IN")}</td>
+        <td>₹${emi.toLocaleString("en-IN")}</td>
         <td>PENDING</td>
       `;
       tbody.appendChild(row);
-    }
-
-    function formatINR(val) {
-      return isNaN(val) ? "--" : `₹${parseInt(val).toLocaleString("en-IN")}`;
     }
 
     async function downloadPDF() {
@@ -209,23 +205,23 @@
       doc.text("Loan Summary Report", 105, 23, null, null, "center");
 
       const info = [
-        ["Customer Name", name],
-        ["Loan ID", loanId],
-        ["Transaction ID", txnId],
-        ["Loan Amount", formatINR(amount)],
-        ["Processing Fee", formatINR(processingFee)],
-        ["Disbursed Amount", formatINR(disbursed)],
-        ["Tenure", `${tenure} months`],
-        ["EMI", `${formatINR(emi)}/month`],
-        ["Interest Rate", isNaN(rate) ? "--" : `${rate}%`],
-        ["Total Payable", formatINR(total)],
-        ["Loan Apply Date", applyDate],
-        ["EMI Start Date", startDate.toLocaleDateString("en-IN")],
-        ["EMI End Date", endDate.toLocaleDateString("en-IN")],
-        ["Bank Name", bankName],
-        ["Account Number", accNo],
-        ["IFSC Code", ifsc],
-        ["UPI ID", upi],
+        ["Customer Name", document.getElementById("name").innerText],
+        ["Loan ID", document.getElementById("loanId").innerText],
+        ["Transaction ID", document.getElementById("txnId").innerText],
+        ["Loan Amount", `₹${document.getElementById("amount").innerText}`],
+        ["Processing Fee", `₹${document.getElementById("processing").innerText}`],
+        ["Disbursed Amount", `₹${document.getElementById("disbursed").innerText}`],
+        ["Tenure", document.getElementById("tenure").innerText + " MONTHS"],
+        ["EMI", `₹${document.getElementById("emi").innerText}/MONTH`],
+        ["Interest Rate", document.getElementById("rate").innerText + "%"],
+        ["Total Payable", `₹${document.getElementById("total").innerText}`],
+        ["Loan Apply Date", document.getElementById("apply").innerText],
+        ["EMI Start Date", document.getElementById("start").innerText],
+        ["EMI End Date", document.getElementById("end").innerText],
+        ["Bank Name", document.getElementById("bank").innerText],
+        ["Account Number", document.getElementById("accNo").innerText],
+        ["IFSC Code", document.getElementById("ifsc").innerText],
+        ["UPI ID", document.getElementById("upi").innerText],
       ];
 
       doc.autoTable({
@@ -242,15 +238,7 @@
       });
 
       const emiRows = Array.from(document.querySelectorAll("#emiTable tbody tr")).map(row => {
-        const cols = row.querySelectorAll("td");
-        return [
-          cols[0]?.innerText || "--",
-          cols[1]?.innerText || "--",
-          `₹${cols[2]?.innerText || "0"}`,
-          `₹${cols[3]?.innerText || "0"}`,
-          `₹${cols[4]?.innerText || "0"}`,
-          cols[5]?.innerText || "--"
-        ];
+        return Array.from(row.querySelectorAll("td")).map(td => td.innerText);
       });
 
       if (emiRows.length > 0) {
@@ -264,7 +252,7 @@
         });
       }
 
-      doc.save(`${name}_Loan_Summary.pdf`);
+      doc.save(`${document.getElementById("name").innerText}_Loan_Summary.pdf`);
     }
 
     function shareOnWhatsApp() {
